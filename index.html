@@ -3,31 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plano Alimentar Interativo</title>
-
+  <title>Plano Alimentar Interativo – Calculadora Automática</title>
   <style>
     :root {
       --bg: #f5efe6;
       --card: #fffaf3;
       --primary: #8b6b4f;
+      --secondary: #c2a98d;
       --text: #3b2f23;
     }
-
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
       margin: 0;
       padding: 2rem;
     }
-
     h1, h2 { color: var(--primary); }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-    }
-
+    .container { max-width: 900px; margin: auto; }
     .card {
       background: var(--card);
       border-radius: 16px;
@@ -35,66 +28,43 @@
       margin-bottom: 1.5rem;
       box-shadow: 0 10px 25px rgba(0,0,0,0.05);
     }
-
-    label {
-      display: block;
-      margin-top: 0.8rem;
-      font-weight: bold;
-    }
-
+    label { display: block; margin-top: 0.8rem; font-weight: 500; }
     input, select {
-      width: 100%;
-      padding: 0.6rem;
-      border-radius: 8px;
-      border: 1px solid #d6c7b7;
-      margin-top: 0.3rem;
+      width: 100%; padding: 0.6rem; border-radius: 8px;
+      border: 1px solid #d6c7b7; margin-top: 0.3rem; font-size: 1rem;
     }
-
     button {
-      margin-top: 1rem;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.8rem 1.2rem;
-      border-radius: 10px;
-      cursor: pointer;
+      margin-top: 1.2rem; background: var(--primary); color: white;
+      border: none; padding: 0.8rem 1.2rem; border-radius: 10px;
+      cursor: pointer; font-size: 1rem;
     }
-
+    .result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #efe5d8;
+      border-radius: 12px;
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1rem;
     }
-
-    .result {
-      background: #efe5d8;
-      padding: 1rem;
-      border-radius: 12px;
-      margin-top: 1rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
+    table th, table td {
       padding: 0.4rem;
       border-bottom: 1px solid #d6c7b7;
     }
   </style>
 </head>
-
 <body>
 <div class="container">
   <h1>Plano Alimentar Interativo</h1>
 
   <div class="card">
-    <h2>Dados do Paciente</h2>
+    <h2>1. Dados do Paciente</h2>
     <div class="grid">
-      <div><label>Peso (kg)</label><input id="peso" type="number"></div>
-      <div><label>Altura (cm)</label><input id="altura" type="number"></div>
-      <div><label>Idade</label><input id="idade" type="number"></div>
+      <div><label>Peso (kg)</label><input type="number" id="peso" /></div>
+      <div><label>Altura (cm ou m)</label><input type="number" id="altura" /></div>
+      <div><label>Idade</label><input type="number" id="idade" /></div>
       <div>
         <label>Sexo</label>
         <select id="sexo">
@@ -103,102 +73,158 @@
         </select>
       </div>
     </div>
-
-    <label>Nível de atividade</label>
+    <label>Nível de atividade física</label>
     <select id="atividade">
       <option value="1.2">Sedentário</option>
       <option value="1.375">Levemente ativo</option>
       <option value="1.55">Moderadamente ativo</option>
       <option value="1.725">Muito ativo</option>
     </select>
-
     <label>Objetivo</label>
-    <select id="deficit">
+    <select id="tipoDeficit">
       <option value="0.15">Emagrecimento conservador</option>
-      <option value="0.2" selected>Emagrecimento moderado</option>
+      <option value="0.20" selected>Emagrecimento moderado</option>
       <option value="0.25">Emagrecimento agressivo</option>
     </select>
-
-    <button onclick="calcular()">Calcular plano</button>
+    <button onclick="calcular()">Calcular</button>
   </div>
 
-  <div class="card">
-    <h2>Energia</h2>
-    <div id="energia" class="result"></div>
-  </div>
-
-  <div class="card">
-    <h2>Macronutrientes</h2>
-    <div id="macros" class="result"></div>
-  </div>
-
-  <div class="card">
-    <h2>Preferências Alimentares</h2>
-    <div id="preferencias" class="grid"></div>
-    <button onclick="calcular()">Aplicar preferências</button>
-  </div>
-
-  <div class="card">
-    <h2>Cardápio Diário</h2>
-    <div id="cardapio" class="result"></div>
-  </div>
+  <div class="card"><h2>2. Energia</h2><div id="energia" class="result"></div></div>
+  <div class="card"><h2>3. Macronutrientes</h2><div id="macros" class="result"></div></div>
+  <div class="card"><h2>4. Preferências Alimentares</h2><div class="grid" id="preferencias"></div><button onclick="aplicarPreferencias()">Aplicar preferências ao cardápio</button></div>
+  <div class="card"><h2>5. Cardápio Diário</h2><div id="cardapio" class="result"></div></div>
 </div>
 
 <script>
-const alimentos = [
-  {id:'arroz',nome:'Arroz',grupo:'carbo'},
-  {id:'macarrao',nome:'Macarrão simples',grupo:'carbo'},
-  {id:'batata',nome:'Batata',grupo:'carbo'},
-  {id:'feijao',nome:'Feijão',grupo:'leguminosa'},
-  {id:'frango',nome:'Frango',grupo:'proteina'},
-  {id:'carne',nome:'Carne',grupo:'proteina'},
-  {id:'ovo',nome:'Ovo',grupo:'proteina'},
-  {id:'fruta',nome:'Fruta',grupo:'fruta'},
-  {id:'cafe',nome:'Café',grupo:'bebida'},
-  {id:'cha',nome:'Chá',grupo:'bebida'}
+const alimentosBase = [
+  { id: 'arroz', nome: 'Arroz', grupo: 'carbo' },
+  { id: 'macarrao', nome: 'Macarrão simples', grupo: 'carbo' },
+  { id: 'batata', nome: 'Batata', grupo: 'carbo' },
+  { id: 'feijao', nome: 'Feijão', grupo: 'leguminosa' },
+  { id: 'frango', nome: 'Frango', grupo: 'proteina' },
+  { id: 'carne', nome: 'Carne', grupo: 'proteina' },
+  { id: 'ovo', nome: 'Ovo', grupo: 'proteina' },
+  { id: 'fruta', nome: 'Frutas', grupo: 'fruta' },
+  { id: 'cafe', nome: 'Café', grupo: 'bebida' },
+  { id: 'cha', nome: 'Chá', grupo: 'bebida' }
 ];
 
-const prefDiv = document.getElementById('preferencias');
-alimentos.forEach(a=>{
-  prefDiv.innerHTML += `
-    <div>
-      <label>${a.nome}</label>
-      <select id="pref-${a.id}">
-        <option value="gosto">Gosto</option>
-        <option value="indiferente" selected>Indiferente</option>
-        <option value="odeio">Odeio</option>
-      </select>
-    </div>`;
-});
+function montarPreferencias() {
+  const div = document.getElementById('preferencias');
+  div.innerHTML = '';
+  alimentosBase.forEach(a => {
+    div.innerHTML += `<div><label>${a.nome}</label><select id="pref-${a.id}"><option value="gosto">Gosto</option><option value="indiferente" selected>Indiferente</option><option value="odeio">Odeio</option></select></div>`;
+  });
+}
+montarPreferencias();
+
+function escolherDoGrupo(grupo, preferencias) {
+  const gostos = alimentosBase.filter(a => a.grupo === grupo && preferencias[a.id] === 'gosto');
+  if (gostos.length) return gostos;
+  return alimentosBase.filter(a => a.grupo === grupo && preferencias[a.id] === 'indiferente');
+}
+
+let ultimoCalculo = false;
+
+// referências explícitas dos containers (evita falha no GitHub Pages)
+const energia = document.getElementById('energia');
+const macros = document.getElementById('macros');
+const cardapio = document.getElementById('cardapio');
 
 function calcular() {
-  const peso = +pesoEl.value;
-  const altura = +alturaEl.value;
-  const idade = +idadeEl.value;
-  const sexo = sexoEl.value;
-  const atividade = +atividadeEl.value;
-  const deficit = +deficitEl.value;
+  const peso = Number(document.getElementById('peso').value);
+  let altura = Number(document.getElementById('altura').value);
+  const idade = Number(document.getElementById('idade').value);
+  const sexo = document.getElementById('sexo').value;
+  const atividade = Number(document.getElementById('atividade').value);
+  const deficit = Number(document.getElementById('tipoDeficit').value);
+
+  if (!peso || !altura || !idade) return alert('Preencha todos os campos');
+  if (altura < 3) altura *= 100;
 
   const tmb = sexo === 'f'
-    ? 10*peso + 6.25*altura - 5*idade - 161
-    : 10*peso + 6.25*altura - 5*idade + 5;
+    ? 10 * peso + 6.25 * altura - 5 * idade - 161
+    : 10 * peso + 6.25 * altura - 5 * idade + 5;
 
   const get = tmb * atividade;
   const vet = get * (1 - deficit);
 
-  const proteina = peso * 2;
-  const carbo = peso * 4;
-  const gordura = (vet - (proteina*4 + carbo*4)) / 9;
+  let protKg, carbKg;
+  if (atividade <= 1.375) { protKg = 1.8; carbKg = 4.0; }
+  else if (atividade < 1.725) { protKg = 2.0; carbKg = 5.0; }
+  else { protKg = 2.2; carbKg = 6.0; }
+
+  const proteina = peso * protKg;
+  const carbo = peso * carbKg;
+  const gordura = (vet - (proteina * 4 + carbo * 4)) / 9;
 
   energia.innerHTML = `TMB: ${tmb.toFixed(0)} kcal<br>GET: ${get.toFixed(0)} kcal<br>VET: ${vet.toFixed(0)} kcal`;
   macros.innerHTML = `Proteína: ${proteina.toFixed(0)} g<br>Carboidrato: ${carbo.toFixed(0)} g<br>Gordura: ${gordura.toFixed(0)} g`;
 
-  cardapio.innerHTML = `
-    Café da manhã: fruta, ovo e café<br><br>
-    Almoço: arroz ou batata, feijão e frango<br><br>
-    Lanche da tarde: fruta e ovo<br><br>
-    Jantar: arroz ou macarrão, carne e legumes
-  `;
+  const preferencias = {};
+  alimentosBase.forEach(a => preferencias[a.id] = document.getElementById(`pref-${a.id}`).value);
+
+  const refeicoes = {
+    'Café da manhã': 0.25,
+    'Almoço': 0.35,
+    'Lanche da tarde': 0.15,
+    'Jantar': 0.25
+  };
+
+  let html = '';
+  for (const nome in refeicoes) {
+    const p = proteina * refeicoes[nome];
+    const c = carbo * refeicoes[nome];
+
+    const carbs = escolherDoGrupo('carbo', preferencias);
+    const prots = escolherDoGrupo('proteina', preferencias);
+    const frutas = escolherDoGrupo('fruta', preferencias);
+    const bebidas = escolherDoGrupo('bebida', preferencias);
+
+    html += `<strong>${nome}</strong><br>`;
+
+    if (nome === 'Café da manhã') {
+      html += `Fruta: ${frutas.map(x => x.nome).join(' ou ')}<br>`;
+      html += `Fonte de carboidrato: pão simples ou aveia (${c.toFixed(0)} g)<br>`;
+      html += `Fonte de proteína: ovo (${p.toFixed(0)} g)<br>`;
+      html += `Bebida: ${bebidas.map(x => x.nome).join(' ou ')} sem açúcar<br><br>`;
+      continue;
+    }
+
+    if (nome === 'Lanche da tarde') {
+      html += `Fruta: ${frutas.map(x => x.nome).join(' ou ')}<br>`;
+      html += `Proteína: ovo (${p.toFixed(0)} g)<br>`;
+      html += `Bebida: ${bebidas.map(x => x.nome).join(' ou ')}<br><br>`;
+      continue;
+    }
+
+    html += `Carboidratos: ${carbs.map(x => x.nome).join(' ou ')} (${c.toFixed(0)} g)<br>`;
+    html += `Leguminosa: feijão<br>`;
+    html += `Proteínas: ${prots.map(x => x.nome).join(' ou ')} (${p.toFixed(0)} g)<br><br>`;
+  }
+
+  cardapio.innerHTML = html + gerarTabelaMedidas();
+  ultimoCalculo = true;
+}
+
+function aplicarPreferencias() {
+  if (!ultimoCalculo) return alert('Calcule o plano primeiro');
+  calcular();
+}
+
+function gerarTabelaMedidas() {
+  return `<hr><strong>Medidas caseiras aproximadas</strong><br><br>
+  <table style="width:100%;border-collapse:collapse">
+    <tr><th align="left">Alimento</th><th align="left">Quantidade</th></tr>
+    <tr><td>Ovo</td><td>1 unidade média aproximadamente 50 g</td></tr>
+    <tr><td>Frango cozido ou desfiado</td><td>1 colher de sopa cheia aproximadamente 25 g</td></tr>
+    <tr><td>Carne cozida</td><td>1 bife pequeno aproximadamente 100 g</td></tr>
+    <tr><td>Arroz cozido</td><td>1 colher de sopa cheia aproximadamente 25 g</td></tr>
+    <tr><td>Feijão cozido</td><td>1 concha média aproximadamente 100 g</td></tr>
+    <tr><td>Batata cozida</td><td>1 unidade média aproximadamente 120 g</td></tr>
+    <tr><td>Frutas</td><td>1 unidade média aproximadamente 80 a 120 g</td></tr>
+  </table><br>
+  <em>Valores aproximados. Priorize o uso de balança sempre que possível.</em>`;
 }
 </script>
 </body>
