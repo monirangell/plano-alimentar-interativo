@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plano Alimentar Interativo</title>
+
+  <style>
+    :root {
+      --bg: #f5efe6;
+      --card: #fffaf3;
+      --primary: #8b6b4f;
+      --text: #3b2f23;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem;
+    }
+
+    h1, h2 { color: var(--primary); }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    label {
+      display: block;
+      margin-top: 0.8rem;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #d6c7b7;
+      margin-top: 0.3rem;
+    }
+
+    button {
+      margin-top: 1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.2rem;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .result {
+      background: #efe5d8;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-top: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 0.4rem;
+      border-bottom: 1px solid #d6c7b7;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <h1>Plano Alimentar Interativo</h1>
+
+  <div class="card">
+    <h2>Dados do Paciente</h2>
+    <div class="grid">
+      <div><label>Peso (kg)</label><input id="peso" type="number"></div>
+      <div><label>Altura (cm)</label><input id="altura" type="number"></div>
+      <div><label>Idade</label><input id="idade" type="number"></div>
+      <div>
+        <label>Sexo</label>
+        <select id="sexo">
+          <option value="f">Feminino</option>
+          <option value="m">Masculino</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Nível de atividade</label>
+    <select id="atividade">
+      <option value="1.2">Sedentário</option>
+      <option value="1.375">Levemente ativo</option>
+      <option value="1.55">Moderadamente ativo</option>
+      <option value="1.725">Muito ativo</option>
+    </select>
+
+    <label>Objetivo</label>
+    <select id="deficit">
+      <option value="0.15">Emagrecimento conservador</option>
+      <option value="0.2" selected>Emagrecimento moderado</option>
+      <option value="0.25">Emagrecimento agressivo</option>
+    </select>
+
+    <button onclick="calcular()">Calcular plano</button>
+  </div>
+
+  <div class="card">
+    <h2>Energia</h2>
+    <div id="energia" class="result"></div>
+  </div>
+
+  <div class="card">
+    <h2>Macronutrientes</h2>
+    <div id="macros" class="result"></div>
+  </div>
+
+  <div class="card">
+    <h2>Preferências Alimentares</h2>
+    <div id="preferencias" class="grid"></div>
+    <button onclick="calcular()">Aplicar preferências</button>
+  </div>
+
+  <div class="card">
+    <h2>Cardápio Diário</h2>
+    <div id="cardapio" class="result"></div>
+  </div>
+</div>
+
+<script>
+const alimentos = [
+  {id:'arroz',nome:'Arroz',grupo:'carbo'},
+  {id:'macarrao',nome:'Macarrão simples',grupo:'carbo'},
+  {id:'batata',nome:'Batata',grupo:'carbo'},
+  {id:'feijao',nome:'Feijão',grupo:'leguminosa'},
+  {id:'frango',nome:'Frango',grupo:'proteina'},
+  {id:'carne',nome:'Carne',grupo:'proteina'},
+  {id:'ovo',nome:'Ovo',grupo:'proteina'},
+  {id:'fruta',nome:'Fruta',grupo:'fruta'},
+  {id:'cafe',nome:'Café',grupo:'bebida'},
+  {id:'cha',nome:'Chá',grupo:'bebida'}
+];
+
+const prefDiv = document.getElementById('preferencias');
+alimentos.forEach(a=>{
+  prefDiv.innerHTML += `
+    <div>
+      <label>${a.nome}</label>
+      <select id="pref-${a.id}">
+        <option value="gosto">Gosto</option>
+        <option value="indiferente" selected>Indiferente</option>
+        <option value="odeio">Odeio</option>
+      </select>
+    </div>`;
+});
+
+function calcular() {
+  const peso = +pesoEl.value;
+  const altura = +alturaEl.value;
+  const idade = +idadeEl.value;
+  const sexo = sexoEl.value;
+  const atividade = +atividadeEl.value;
+  const deficit = +deficitEl.value;
+
+  const tmb = sexo === 'f'
+    ? 10*peso + 6.25*altura - 5*idade - 161
+    : 10*peso + 6.25*altura - 5*idade + 5;
+
+  const get = tmb * atividade;
+  const vet = get * (1 - deficit);
+
+  const proteina = peso * 2;
+  const carbo = peso * 4;
+  const gordura = (vet - (proteina*4 + carbo*4)) / 9;
+
+  energia.innerHTML = `TMB: ${tmb.toFixed(0)} kcal<br>GET: ${get.toFixed(0)} kcal<br>VET: ${vet.toFixed(0)} kcal`;
+  macros.innerHTML = `Proteína: ${proteina.toFixed(0)} g<br>Carboidrato: ${carbo.toFixed(0)} g<br>Gordura: ${gordura.toFixed(0)} g`;
+
+  cardapio.innerHTML = `
+    Café da manhã: fruta, ovo e café<br><br>
+    Almoço: arroz ou batata, feijão e frango<br><br>
+    Lanche da tarde: fruta e ovo<br><br>
+    Jantar: arroz ou macarrão, carne e legumes
+  `;
+}
+</script>
+</body>
+</html>
